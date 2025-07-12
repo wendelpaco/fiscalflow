@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { JobsResponse } from "@/lib/types";
+import type { Job, JobsResponse } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   BarChart,
@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import AnalyticsFilters from "@/components/analytics-filters";
 import AnalyticsInsights from "@/components/analytics-insights";
+import Link from "next/link";
 
 export default function AnalyticsPage() {
   const [filters, setFilters] = useState({
@@ -54,13 +55,13 @@ export default function AnalyticsPage() {
     refetchInterval: 10000, // Atualiza a cada 10 segundos
   });
 
-  const jobs = data?.jobs || [];
+  const jobs: Job[] = data?.jobs || [];
 
   // Função para filtrar jobs baseado nos filtros aplicados
-  const getFilteredJobs = () => {
+  const getFilteredJobs = (): Job[] => {
     if (!jobs.length) return [];
 
-    let filteredJobs = [...jobs];
+    let filteredJobs: Job[] = [...jobs];
 
     // Filtro por período
     if (filters.period !== "all") {
@@ -94,7 +95,7 @@ export default function AnalyticsPage() {
     return filteredJobs;
   };
 
-  const filteredJobs = getFilteredJobs();
+  const filteredJobs: Job[] = getFilteredJobs();
 
   // Processar dados para análise
   const processAnalyticsData = () => {
@@ -171,9 +172,14 @@ export default function AnalyticsPage() {
     const errorJobs = filteredJobs.filter(
       (job) => job.status === "ERROR"
     ).length;
+    const blockedJobs = filteredJobs.filter(
+      (job) => job.status === "BLOCKED"
+    ).length;
+    const errorAndBlockedJobs = errorJobs + blockedJobs;
     const pendingJobs = filteredJobs.filter(
       (job) => job.status === "PENDING"
     ).length;
+    const pendingAndBlockedJobs = pendingJobs + blockedJobs;
     const jobsWithDuration = filteredJobs.filter(
       (job) => job.processingDurationMs && job.processingDurationMs > 0
     );
@@ -201,14 +207,59 @@ export default function AnalyticsPage() {
     return {
       totalJobs,
       completedJobs,
-      errorJobs,
-      pendingJobs,
+      errorJobs: errorJobs, // Apenas jobs com erro, sem incluir bloqueados
+      pendingJobs: pendingAndBlockedJobs,
+      blockedJobs: blockedJobs, // Jobs bloqueados para insights
       avgProcessingTime: avgProcessingTime / 1000, // Convert to seconds
       totalAmount,
     };
   };
 
   const metrics = getMainMetrics();
+
+  // Função utilitária para garantir tipo Job
+  function isJob(obj: unknown): obj is Job {
+    return (
+      !!obj &&
+      typeof obj === "object" &&
+      "id" in obj &&
+      typeof (obj as any).id === "string" &&
+      "status" in obj &&
+      typeof (obj as any).status === "string"
+    );
+  }
+
+  // Calcular tempo máximo/mínimo de processamento e jobs extremos
+  let maxJob: Job | null = null;
+  let minJob: Job | null = null;
+  let maxTime = 0;
+  let minTime = Infinity;
+  let jobsProcessing = 0;
+  let jobsBlocked = 0;
+  const statusCount: Record<string, number> = {};
+  const filteredJobsSafe: Job[] = Array.isArray(filteredJobs)
+    ? filteredJobs.filter(isJob)
+    : [];
+  if (filteredJobsSafe.length > 0) {
+    (filteredJobsSafe as Job[]).forEach((job: Job) => {
+      statusCount[job.status] = (statusCount[job.status] || 0) + 1;
+      if (job.status === "PROCESSING") jobsProcessing++;
+      if (job.status === "BLOCKED") jobsBlocked++;
+      if (
+        typeof job.processingDurationMs === "number" &&
+        job.status === "DONE"
+      ) {
+        if (job.processingDurationMs > maxTime) {
+          maxTime = job.processingDurationMs;
+          maxJob = job;
+        }
+        if (job.processingDurationMs < minTime) {
+          minTime = job.processingDurationMs;
+          minJob = job;
+        }
+      }
+    });
+  }
 
   if (isLoading) {
     return (
@@ -570,13 +621,81 @@ export default function AnalyticsPage() {
                       </td>
                     </tr>
                     <tr className="border-b">
+                      <td className="p-2 font-medium">
+                        Tempo Máximo de Processamento
+                      </td>
+                      <td className="p-2">
+                        {maxJob &&
+                        isJob(maxJob) &&
+                        typeof (maxJob as Job).processingDurationMs ===
+                          "number" &&
+                        typeof (maxJob as Job).urlQueueId === "string" ? (
+                          <Link
+                            href={`/jobs/${(maxJob as Job).urlQueueId}`}
+                            className="underline text-primary"
+                          >
+                            {(
+                              (maxJob as Job).processingDurationMs! / 1000
+                            ).toFixed(2)}
+                            s
+                          </Link>
+                        ) : (
+                          "N/A"
+                        )}
+                      </td>
+                      <td className="p-2 text-muted-foreground">
+                        Job mais lento
+                      </td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-medium">
+                        Tempo Mínimo de Processamento
+                      </td>
+                      <td className="p-2">
+                        {minJob &&
+                        isJob(minJob) &&
+                        typeof (minJob as Job).processingDurationMs! ===
+                          "number" &&
+                        typeof (minJob as Job).urlQueueId === "string" ? (
+                          <Link
+                            href={`/jobs/${(minJob as Job).urlQueueId}`}
+                            className="underline text-primary"
+                          >
+                            {(
+                              (minJob as Job).processingDurationMs! / 1000
+                            ).toFixed(2)}
+                            s
+                          </Link>
+                        ) : (
+                          "N/A"
+                        )}
+                      </td>
+                      <td className="p-2 text-muted-foreground">
+                        Job mais rápido
+                      </td>
+                    </tr>
+                    <tr className="border-b">
                       <td className="p-2 font-medium">Jobs Pendentes</td>
                       <td className="p-2">{metrics.pendingJobs}</td>
                       <td className="p-2 text-muted-foreground">
                         Jobs aguardando processamento
                       </td>
                     </tr>
-                    <tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-medium">Jobs em Processamento</td>
+                      <td className="p-2">{jobsProcessing}</td>
+                      <td className="p-2 text-muted-foreground">
+                        Jobs atualmente em processamento
+                      </td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 font-medium">Jobs Bloqueados</td>
+                      <td className="p-2">{jobsBlocked}</td>
+                      <td className="p-2 text-muted-foreground">
+                        Jobs aguardando liberação
+                      </td>
+                    </tr>
+                    <tr className="border-b">
                       <td className="p-2 font-medium">
                         Valor Total Processado
                       </td>

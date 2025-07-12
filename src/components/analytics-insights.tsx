@@ -15,6 +15,7 @@ interface AnalyticsInsightsProps {
     completedJobs: number;
     errorJobs: number;
     pendingJobs: number;
+    blockedJobs: number;
     avgProcessingTime: number;
     totalAmount: number;
   } | null;
@@ -126,15 +127,41 @@ export default function AnalyticsInsights({ metrics }: AnalyticsInsightsProps) {
       });
     }
 
-    // Insight sobre jobs pendentes
-    if (metrics.pendingJobs > 10) {
+    // Insight sobre taxa de erro
+    if (errorRate > 10) {
+      insights.push({
+        type: "negative",
+        icon: AlertTriangle,
+        title: "Taxa de Erro Alta",
+        description: `${errorRate.toFixed(
+          1
+        )}% dos jobs falharam. Ação necessária.`,
+        color: "text-red-600",
+        bgColor: "bg-red-50",
+      });
+    } else if (errorRate > 5) {
       insights.push({
         type: "warning",
         icon: AlertTriangle,
-        title: "Jobs Pendentes",
-        description: `${metrics.pendingJobs} jobs aguardando processamento.`,
+        title: "Taxa de Erro Moderada",
+        description: `${errorRate.toFixed(
+          1
+        )}% dos jobs falharam. Considere investigar.`,
         color: "text-yellow-600",
         bgColor: "bg-yellow-50",
+      });
+    }
+
+    // Insight sobre jobs com erro e bloqueados
+    const errorAndBlockedJobs = metrics.errorJobs + metrics.blockedJobs;
+    if (errorAndBlockedJobs > 5) {
+      insights.push({
+        type: "negative",
+        icon: AlertTriangle,
+        title: "Jobs com Problemas",
+        description: `${errorAndBlockedJobs} jobs com erro ou bloqueados. Considere investigar.`,
+        color: "text-red-600",
+        bgColor: "bg-red-50",
       });
     }
 

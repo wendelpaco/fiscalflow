@@ -13,7 +13,10 @@ const CreateJobSchema = z.object({
     .string()
     .url({ message: "A URL do webhook deve ser válida." })
     .optional()
-    .or(z.literal("")),
+    .or(z.literal(""))
+    .transform((val) => {
+      return val === "" ? undefined : val;
+    }),
 });
 
 export async function createJob(prevState: any, formData: FormData) {
@@ -33,16 +36,18 @@ export async function createJob(prevState: any, formData: FormData) {
   const { url, webhookUrl } = validatedFields.data;
 
   try {
+    const requestBody = {
+      url,
+      ...(webhookUrl && { webhookUrl }),
+    };
+
     const response = await fetch(`${API_URL}/queue`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${AUTH_TOKEN}`,
       },
-      body: JSON.stringify({
-        url,
-        webhook_url: webhookUrl || undefined,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -65,7 +70,6 @@ export async function createJob(prevState: any, formData: FormData) {
       message: `Job ${newJob.jobId} criado com sucesso!`,
     };
   } catch (error) {
-    console.error("API call failed:", error);
     if (error instanceof Error) {
       return { type: "error", message: `Erro de conexão: ${error.message}` };
     }
