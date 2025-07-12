@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { Job } from './types';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://179.197.196.213:3443';
 const AUTH_TOKEN = '5b289e19-c6f0-4f27-bd42-1e6b46fb82f5';
 
 // Mock database
@@ -102,30 +102,41 @@ export async function createJob(prevState: any, formData: FormData) {
 
     const { url, webhookUrl } = validatedFields.data;
 
-    const newJob: Job = {
-        id: crypto.randomUUID(),
-        status: 'PENDING',
-        url,
-        webhookUrl: webhookUrl || null,
-        createdAt: new Date().toISOString(),
-        processingStartedAt: null,
-        processingEndedAt: null,
-        processingDurationMs: null,
-        metadata: null
-    };
+    try {
+        const response = await fetch(`${API_URL}/queue`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${AUTH_TOKEN}`
+            },
+            body: JSON.stringify({ 
+                url, 
+                webhook_url: webhookUrl || undefined 
+            }),
+        });
 
-    const result = await mockApiCall(newJob);
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { type: 'error', message: `Falha ao criar o job: ${errorData.message || response.statusText}` };
+        }
 
-    if (!result.success || !result.data) {
-        return { type: 'error', message: result.error || "Falha ao criar o job." }
+        const newJob = await response.json();
+        
+        // Add to the local mock list to show in the UI immediately
+        jobs.unshift(newJob);
+
+        revalidatePath('/');
+        revalidatePath('/jobs');
+
+        return { type: 'success', message: `Job ${newJob.id} criado com sucesso!` };
+
+    } catch (error) {
+        console.error('API call failed:', error);
+        if (error instanceof Error) {
+            return { type: 'error', message: `Erro de conexão: ${error.message}` };
+        }
+        return { type: 'error', message: "Ocorreu um erro desconhecido ao se conectar com a API." }
     }
-    
-    jobs.unshift(result.data); // Add to the top of the list
-
-    revalidatePath('/');
-    revalidatePath('/jobs');
-
-    return { type: 'success', message: `Job ${result.data.id} criado com sucesso!` };
 }
 
 export async function createMassJobs() {
