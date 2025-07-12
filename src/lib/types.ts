@@ -12,12 +12,16 @@ export interface JobTotals {
   amountToPay: string;
   paymentMethod: string;
   paymentAmount: string;
+  taxInfo?: string;
+  discount?: string;
+  totalValue?: string;
 }
 
 export interface JobMetadata {
   numero?: string;
   serie?: string;
   dataEmissao?: string;
+  protocoloAutorizacao?: string;
   nomeEmpresa?: string;
   cnpj?: string;
   items?: JobItem[];
@@ -25,16 +29,23 @@ export interface JobMetadata {
   error?: string;
 }
 
-export type JobStatus = 'PENDING' | 'PROCESSING' | 'DONE' | 'ERROR';
+export type JobStatus = "PENDING" | "PROCESSING" | "DONE" | "ERROR" | "BLOCKED";
 
 export interface Job {
   id: string;
   status: JobStatus;
   url: string;
+  urlFinal: string;
   webhookUrl: string | null;
   createdAt: string;
+  urlQueueId: string;
   processingStartedAt: string | null;
   processingEndedAt: string | null;
   processingDurationMs: number | null;
   metadata: JobMetadata | null;
+}
+
+export interface JobsResponse {
+  jobs: Job[];
+  total: number;
 }
