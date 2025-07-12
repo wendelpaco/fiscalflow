@@ -6,10 +6,10 @@ const AUTH_TOKEN = "5b289e19-c6f0-4f27-bd42-1e6b46fb82f5";
 
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
 
     // Monta a URL final da API externa
     const externalUrl = `${EXTERNAL_API_BASE}/${id}`;

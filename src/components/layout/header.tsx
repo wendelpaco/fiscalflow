@@ -10,6 +10,7 @@ import { Menu, Bot } from "lucide-react";
 const navLinks = [
   { href: "/", label: "Criar Job" },
   { href: "/jobs", label: "Fila de Jobs" },
+  { href: "/analytics", label: "Análise Avançada" },
 ];
 
 export default function Header() {
@@ -56,12 +57,15 @@ export default function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left">
-                <Link href="/" className="mr-6 flex items-center space-x-2 mb-6">
-                    <Bot className="h-6 w-6 text-primary" />
-                    <span className="font-bold">FiscalFlow</span>
+                <Link
+                  href="/"
+                  className="mr-6 flex items-center space-x-2 mb-6"
+                >
+                  <Bot className="h-6 w-6 text-primary" />
+                  <span className="font-bold">FiscalFlow</span>
                 </Link>
                 <nav className="grid gap-4">
-                    <NavLinks className="text-lg" />
+                  <NavLinks className="text-lg" />
                 </nav>
               </SheetContent>
             </Sheet>

@@ -7,6 +7,9 @@ import ReactQueryProvider from "@/components/ReactQueryProvider";
 export const metadata: Metadata = {
   title: "FiscalFlow",
   description: "Gerencie sua fila de processamento de notas fiscais NFCe.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -17,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
