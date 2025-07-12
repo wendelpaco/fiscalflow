@@ -1,6 +1,8 @@
+
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Send, Layers } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const FormSchema = z.object({
   url: z.string().url({ message: "Por favor, insira uma URL válida." }),
@@ -31,23 +34,11 @@ function SubmitButton() {
 
 function MassSubmitButton() {
     const { pending } = useFormStatus();
-    const { toast } = useToast();
-
-    const handleMassCreate = async () => {
-        const result = await createMassJobs();
-        toast({
-            title: "Criação em Massa",
-            description: result.message,
-            variant: "default",
-        });
-    }
-
     return (
         <Button
-            type="button"
+            type="submit"
             variant="outline"
             disabled={pending}
-            onClick={handleMassCreate}
         >
             {pending ? <Loader2 className="animate-spin" /> : <Layers />}
             Criar Jobs em Massa
@@ -59,10 +50,19 @@ export default function JobCreationForm() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [state, formAction] = useFormState(createJob, {
+  const [state, formAction] = useActionState(createJob, {
     type: "",
     message: "",
   });
+
+  const massCreateAction = async () => {
+    const result = await createMassJobs();
+    toast({
+        title: "Criação em Massa",
+        description: result.message,
+        variant: "default",
+    });
+  }
 
   const { register, formState: { errors }, reset } = useForm({
     resolver: zodResolver(FormSchema),
@@ -119,11 +119,17 @@ export default function JobCreationForm() {
             {state?.errors?.webhookUrl && <p className="text-sm text-destructive">{state.errors.webhookUrl[0]}</p>}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-            <MassSubmitButton />
+        <CardFooter className="flex justify-end">
             <SubmitButton />
         </CardFooter>
       </form>
+      <Separator className="my-4" />
+        <form action={massCreateAction}>
+            <CardFooter className="flex justify-between items-center">
+                <p className="text-sm text-muted-foreground">Ou crie jobs de teste em massa.</p>
+                <MassSubmitButton />
+            </CardFooter>
+        </form>
     </Card>
   );
 }
