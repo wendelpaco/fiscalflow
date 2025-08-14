@@ -237,7 +237,7 @@ export default function JobsTable({ allJobs }: JobsTableProps) {
                 className="cursor-pointer"
                 onClick={() => handleSort("notas")}
               >
-                Notas{renderSortIcon("notas")}
+                Items{renderSortIcon("notas")}
               </TableHead>
               <TableHead
                 className="hidden sm:table-cell cursor-pointer"
