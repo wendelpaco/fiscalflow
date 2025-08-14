@@ -31,6 +31,28 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* SEO & Open Graph Meta Tags */}
+        <meta
+          name="description"
+          content="Gerencie sua fila de processamento de notas fiscais NFCe."
+        />
+        <meta property="og:title" content="FiscalFlow" />
+        <meta
+          property="og:description"
+          content="Gerencie sua fila de processamento de notas fiscais NFCe."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://fiscalflow.com.br/" />
+        <meta property="og:image" content="/favicon.svg" />
+        <meta property="og:locale" content="pt_BR" />
+        {/* Twitter Card Meta Tags */}
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="FiscalFlow" />
+        <meta
+          name="twitter:description"
+          content="Gerencie sua fila de processamento de notas fiscais NFCe."
+        />
+        <meta name="twitter:image" content="/favicon.svg" />
       </head>
       <body className="font-body antialiased bg-background text-foreground">
         <ReactQueryProvider>

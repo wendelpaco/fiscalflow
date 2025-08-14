@@ -11,6 +11,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Search,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 import type { Job, JobStatus } from "@/lib/types";
@@ -52,6 +54,8 @@ export default function JobsTable({ allJobs }: JobsTableProps) {
   const [limit, setLimit] = useState(10);
   const [statusFilter, setStatusFilter] = useState<JobStatus[]>([]);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<string>("createdAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   // Filtro de status
   const filteredByStatus =
@@ -66,11 +70,45 @@ export default function JobsTable({ allJobs }: JobsTableProps) {
       job.url.toLowerCase().includes(search.toLowerCase())
   );
 
-  const total = filteredJobs.length;
+  // Ordenação
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    let aValue: any;
+    let bValue: any;
+    switch (sortBy) {
+      case "status":
+        aValue = a.status;
+        bValue = b.status;
+        break;
+      case "id":
+        aValue = a.id;
+        bValue = b.id;
+        break;
+      case "notas":
+        aValue = a.metadata?.items?.length || 0;
+        bValue = b.metadata?.items?.length || 0;
+        break;
+      case "createdAt":
+        aValue = a.createdAt;
+        bValue = b.createdAt;
+        break;
+      case "processingDurationMs":
+        aValue = a.processingDurationMs || 0;
+        bValue = b.processingDurationMs || 0;
+        break;
+      default:
+        aValue = a.createdAt;
+        bValue = b.createdAt;
+    }
+    if (aValue < bValue) return sortDir === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDir === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const total = sortedJobs.length;
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const start = (page - 1) * limit;
   const end = start + limit;
-  const jobs = filteredJobs.slice(start, end);
+  const jobs = sortedJobs.slice(start, end);
 
   const goToPage = (newPage: number) => {
     setPage(newPage);
@@ -99,9 +137,37 @@ export default function JobsTable({ allJobs }: JobsTableProps) {
 
   const formatDuration = (ms: number | null) => {
     if (ms === null) return "-";
-    if (ms < 1000) return `${ms}ms`;
-    return `${(ms / 1000).toFixed(2)}s`;
+    const totalSeconds = Math.floor(ms / 1000);
+    if (totalSeconds < 60) {
+      return `${(ms / 1000).toFixed(2)} s`;
+    }
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (minutes < 60) {
+      return `${minutes}m ${seconds}s`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remMinutes = minutes % 60;
+    return `${hours}h ${remMinutes}m ${seconds}s`;
   };
+
+  function renderSortIcon(col: string) {
+    if (sortBy !== col) return null;
+    return sortDir === "asc" ? (
+      <ArrowUp className="inline w-3 h-3 ml-1" />
+    ) : (
+      <ArrowDown className="inline w-3 h-3 ml-1" />
+    );
+  }
+
+  function handleSort(col: string) {
+    if (sortBy === col) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(col);
+      setSortDir("asc");
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -149,12 +215,41 @@ export default function JobsTable({ allJobs }: JobsTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">Status</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead className="hidden md:table-cell">URL</TableHead>
-              <TableHead className="hidden sm:table-cell">Criação</TableHead>
-              <TableHead className="hidden sm:table-cell text-right">
-                Duração
+              <TableHead
+                className="w-[100px] cursor-pointer"
+                onClick={() => handleSort("status")}
+              >
+                Status{renderSortIcon("status")}
+              </TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("id")}
+              >
+                ID{renderSortIcon("id")}
+              </TableHead>
+              <TableHead
+                className="hidden md:table-cell cursor-pointer"
+                onClick={() => handleSort("url")}
+              >
+                URL
+              </TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("notas")}
+              >
+                Notas{renderSortIcon("notas")}
+              </TableHead>
+              <TableHead
+                className="hidden sm:table-cell cursor-pointer"
+                onClick={() => handleSort("createdAt")}
+              >
+                Criação{renderSortIcon("createdAt")}
+              </TableHead>
+              <TableHead
+                className="hidden sm:table-cell text-right cursor-pointer"
+                onClick={() => handleSort("processingDurationMs")}
+              >
+                Duração{renderSortIcon("processingDurationMs")}
               </TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -190,6 +285,7 @@ export default function JobsTable({ allJobs }: JobsTableProps) {
                       </Tooltip>
                     </TooltipProvider>
                   </TableCell>
+                  <TableCell>{job.metadata?.items?.length || 0}</TableCell>
                   <TableCell className="hidden sm:table-cell">
                     {formatDistanceToNow(new Date(job.createdAt), {
                       addSuffix: true,
@@ -211,7 +307,7 @@ export default function JobsTable({ allJobs }: JobsTableProps) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   Nenhum job encontrado.
                 </TableCell>
               </TableRow>
