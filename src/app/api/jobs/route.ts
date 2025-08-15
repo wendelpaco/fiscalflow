@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 // Configurações da API externa
 const EXTERNAL_API_BASE = "http://192.168.0.104:3000/queue/jobs";
-const AUTH_TOKEN = "17bcc4e2-416e-4172-9192-d874b60478ef";
+const AUTH_TOKEN = "cbf690d7-7fc7-43a4-ae20-02541e6e8793";
 
 export async function GET(request: Request) {
   try {

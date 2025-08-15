@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Job } from "./types";
 
 const API_URL = "http://192.168.0.104:3000";
-const AUTH_TOKEN = "17bcc4e2-416e-4172-9192-d874b60478ef";
+const AUTH_TOKEN = "cbf690d7-7fc7-43a4-ae20-02541e6e8793";
 
 const CreateJobSchema = z.object({
   url: z.string().url({ message: "Por favor, insira uma URL válida." }),
