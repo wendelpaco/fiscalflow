@@ -41,7 +41,8 @@ export default function JobDetailPage() {
   const id = params.id;
 
   const fetchJob = async () => {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || "http://192.168.0.104:3001";
     const res = await fetch(`${baseUrl}/api/status/${id}`, {
       cache: "no-store",
     });

@@ -25,7 +25,8 @@ import { Clock, CheckCircle2, XCircle, Hourglass, Shield } from "lucide-react";
 export default function Home() {
   // Buscar últimos jobs (limit=8 para melhor altura)
   const fetchJobs = async () => {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || "http://192.168.0.104:3001";
     const res = await fetch(`${baseUrl}/api/jobs?limit=8`, {
       cache: "no-store",
     });
