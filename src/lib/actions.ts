@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { Job } from "./types";
 
-const API_URL = "http://192.168.0.104:3000";
-const AUTH_TOKEN = "cbf690d7-7fc7-43a4-ae20-02541e6e8793";
+const API_URL = "http://localhost:3000";
+const AUTH_TOKEN = "5b289e19-c6f0-4f27-bd42-1e6b46fb82f5";
 
 const CreateJobSchema = z.object({
   url: z.string().url({ message: "Por favor, insira uma URL válida." }),
@@ -86,5 +86,3 @@ export async function createMassJobs() {
     message: `Função de criação em massa não implementada para API real.`,
   };
 }
-
-// As funções getJobs e getJobById foram removidas pois só faziam sentido com dados mockados.

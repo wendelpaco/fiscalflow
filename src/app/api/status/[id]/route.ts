@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 // Configurações da API externa
-const EXTERNAL_API_BASE = "http://192.168.0.104:3000/api/status";
-const AUTH_TOKEN = "cbf690d7-7fc7-43a4-ae20-02541e6e8793";
+const EXTERNAL_API_BASE = "http://localhost:3000/api/status";
+const AUTH_TOKEN = "5b289e19-c6f0-4f27-bd42-1e6b46fb82f5";
 
 export async function GET(
   request: Request,

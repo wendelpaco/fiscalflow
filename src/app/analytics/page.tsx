@@ -42,8 +42,7 @@ export default function AnalyticsPage() {
   });
 
   const fetchJobs = async (): Promise<JobsResponse> => {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || "http://192.168.0.104:3001";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
     const res = await fetch(`${baseUrl}/api/jobs`, { cache: "no-store" });
     if (!res.ok) throw new Error("Erro ao buscar jobs");
     return res.json();
